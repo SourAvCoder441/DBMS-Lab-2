@@ -1,0 +1,45 @@
+-- Insert into LANGUAGE
+INSERT INTO LANGUAGE(Language_Id, Name) VALUES (101, 'English'), (102, 'Malayalam'), (103, 'Hindi');
+
+-- Insert into PUBLISHER
+INSERT INTO PUBLISHER(Publisher_Id, Name, Address) VALUES (201, 'Oxford Publishers', 'Delhi'), (202, 'Pearson Publishers', 'Mumbai'), (203, 'Penguin Books', 'Chennai');
+
+-- Insert into AUTHOR
+INSERT INTO AUTHOR(Author_Id, Name, Email, Phone_Number, Status) VALUES (301, 'John Doe', 'john.doe@example.com', '1234567890', 'Active'), (302, 'Alice Johnson', 'alice.johnson@example.com', '0987654321', 'Active'), (303, 'Bob Smith', 'bob.smith@example.com', '5556667777', 'Active');
+
+-- Insert into BOOK
+INSERT INTO BOOK(Book_Id, Title, Language_Id, MRP, Publisher_Id, Published_Date, Volume, Status) VALUES (401, 'The Great Adventure', 101, 500, 201, '2021-06-15', 1, 'Available'), (402, 'Science 101', 102, 300, 202, '2022-01-10', 1, 'Issued'), (403, 'History of India', 103, 600, 203, '2020-11-23', 1, 'Available');
+
+-- Insert into BOOK_AUTHOR
+INSERT INTO BOOK_AUTHOR(Book_Id, Author_Id) VALUES (401, 301), (402, 302), (403, 303);
+
+-- Insert into MEMBER
+INSERT INTO MEMBER(Member_Id, Name, Branch_Code, Roll_Number, Phone_Number, Email_Id, Date_of_Join, Status) VALUES (501, 'Rahul Sharma', 'CSE', '1001', '1233214567', 'rahul.sharma@example.com', '2021-01-15', 'Active'), (502, 'Sita Devi', 'ECE', '1002', '9876543210', 'sita.devi@example.com', '2022-05-10', 'Active');
+
+-- Insert into BOOK_ISSUE
+INSERT INTO BOOK_ISSUE(Issue_Id, Date_Of_Issue, Book_Id, Member_Id, Expected_Date_Of_Return, Status) VALUES (601, '2023-09-01', 402, 501, '2023-09-14', 'Issued'), (602, '2023-08-01', 401, 502, '2023-08-14', 'Returned');
+
+-- Insert into BOOK_RETURN
+INSERT INTO BOOK_RETURN(Issue_Id, Actual_Date_Of_Return, LateDays, LateFee) VALUES (602, '2023-08-18', 4, 10);
+
+
+
+
+
+4.
+
+a. SELECT COUNT(ba.Book_Id) FROM AUTHOR a JOIN BOOK_AUTHOR ba ON a.Author_Id = ba.Author_Id WHERE a.Author_Id = 301;
+
+b. SELECT p.Name, COUNT(b.Book_Id) FROM PUBLISHER p LEFT JOIN BOOK b ON p.Publisher_Id = b.Publisher_Id GROUP BY p.Name;
+
+c. SELECT b.Title, m.Name, bi.Date_Of_Issue FROM BOOK_ISSUE bi JOIN BOOK b ON bi.Book_Id = b.Book_Id JOIN MEMBER m ON bi.Member_Id = m.Member_Id WHERE bi.Status = 'Issued';
+
+d. SELECT m.Name FROM MEMBER m WHERE NOT EXISTS (SELECT 1 FROM BOOK_ISSUE bi JOIN BOOK b ON bi.Book_Id = b.Book_Id WHERE bi.Member_Id = m.Member_Id AND b.Language_Id != (SELECT Language_Id FROM LANGUAGE WHERE Name = 'Malayalam'));
+
+e. SELECT SUM(br.LateFee) FROM BOOK_RETURN br WHERE QUARTER(br.Actual_Date_Of_Return) = QUARTER(CURRENT_DATE()) AND YEAR(br.Actual_Date_Of_Return) = YEAR(CURRENT_DATE());
+
+f. SELECT m.Name, b.Title, bi.Expected_Date_Of_Return FROM BOOK_ISSUE bi JOIN MEMBER m ON bi.Member_Id = m.Member_Id JOIN BOOK b ON bi.Book_Id = b.Book_Id WHERE bi.Status = 'Issued' AND bi.Expected_Date_Of_Return < CURRENT_DATE();
+
+g.SELECT m.Name, b.Title, DATEDIFF(CURRENT_DATE(), bi.Expected_Date_Of_Return) AS LateDays, CASE WHEN DATEDIFF(CURRENT_DATE(), bi.Expected_Date_Of_Return) BETWEEN 1 AND 7 THEN 10 WHEN DATEDIFF(CURRENT_DATE(), bi.Expected_Date_Of_Return) BETWEEN 8 AND 30 THEN 100 ELSE (DATEDIFF(CURRENT_DATE(), bi.Expected_Date_Of_Return) - 30) * 10 END AS Fine FROM BOOK_ISSUE bi JOIN MEMBER m ON bi.Member_Id = m.Member_Id JOIN BOOK b ON bi.Book_Id = b.Book_Id WHERE bi.Status = 'Issued' AND bi.Expected_Date_Of_Return < CURRENT_DATE();
+
+h. SELECT m.Name FROM MEMBER m LEFT JOIN BOOK_ISSUE bi ON m.Member_Id = bi.Member_Id WHERE m.Date_Of_Join > '2021-01-01' AND bi.Issue_Id IS NULL;
